@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router";
 
 type WindowProps = {
   title?: string;
@@ -71,6 +72,34 @@ const TEXT_WINDOW_DEFAULTS: Record<string, TextWindowPayload> = {
   },
 };
 
+const ROUTER_BASENAME = "/DESIGNSTRATEGYWEBSITE";
+
+const PAGE_PATH_ALIASES: Record<string, string> = {
+  "/wildturkey": "/wild-turkey",
+  "/turkey": "/wild-turkey",
+  "/willow": "/willow-tree",
+  "/willowtree": "/willow-tree",
+};
+
+const normalizePagePath = (rawPath: string) => {
+  const trimmed = rawPath.trim().toLowerCase();
+  const withoutTrailingSlash = trimmed.length > 1 ? trimmed.replace(/\/+$/, "") : trimmed;
+  return withoutTrailingSlash || "/";
+};
+
+const toCanonicalPagePath = (rawPath: string) => {
+  const normalizedPath = normalizePagePath(rawPath);
+  const normalizedBase = normalizePagePath(ROUTER_BASENAME);
+  const withoutBase =
+    normalizedPath === normalizedBase
+      ? "/"
+      : normalizedPath.startsWith(`${normalizedBase}/`)
+        ? normalizedPath.slice(normalizedBase.length)
+        : normalizedPath;
+  const path = withoutBase || "/";
+  return PAGE_PATH_ALIASES[path] ?? path;
+};
+
 export default function Window({
   title = "",
   width,
@@ -81,20 +110,22 @@ export default function Window({
   showTextWindow = true,
   children,
 }: WindowProps) {
+  const location = useLocation();
   const clampSightings = (value: number) => Math.max(0, Math.min(99, value));
-  const pagePath = useMemo(() => {
-    if (typeof window === "undefined") return "/";
-    return window.location.pathname || "/";
-  }, []);
+  const pagePath = useMemo(() => toCanonicalPagePath(location.pathname || "/"), [location.pathname]);
   const defaultWindowName = title ? `${title}: Information` : "Information";
-  const pageDefaults = TEXT_WINDOW_DEFAULTS[pagePath] ?? {
-    text: "",
-    images: [],
-    windowName: defaultWindowName,
-    subheading1: "",
-    subheading2: "Add notes and images",
-    numberOfSightings: 1,
-  };
+  const pageDefaults = useMemo(
+    () =>
+      TEXT_WINDOW_DEFAULTS[pagePath] ?? {
+        text: "",
+        images: [],
+        windowName: defaultWindowName,
+        subheading1: "",
+        subheading2: "Add notes and images",
+        numberOfSightings: 1,
+      },
+    [defaultWindowName, pagePath],
+  );
   const [currentDefaults, setCurrentDefaults] = useState<TextWindowPayload>(pageDefaults);
 
   const [noteText, setNoteText] = useState(pageDefaults.text);
@@ -111,6 +142,20 @@ export default function Window({
   const normalizeSubheading = (value: string) => value.replace(/^<i>/i, "").replace(/<\/i>$/i, "");
   const displaySubheading1 = normalizeSubheading(subheading1);
   const displaySubheading2 = normalizeSubheading(subheading2);
+
+  useEffect(() => {
+    setCurrentDefaults(pageDefaults);
+    setNoteText(pageDefaults.text);
+    setImages([...pageDefaults.images]);
+    setWindowName(pageDefaults.windowName);
+    setSubheading1(pageDefaults.subheading1);
+    setSubheading2(pageDefaults.subheading2);
+    const clampedSightings = clampSightings(pageDefaults.numberOfSightings);
+    setSightingsValue(clampedSightings);
+    setSightingsInput(String(clampedSightings));
+    setSaveStatus("idle");
+    setJsonStatus("idle");
+  }, [pageDefaults]);
 
   useEffect(() => {
     if (saveStatus !== "saved") return;

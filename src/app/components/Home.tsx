@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 import bunnyIcon from "../../assets/images/Bunnyicon.png";
 import duck2Icon from "../../assets/images/DUCK 2.png";
@@ -13,6 +14,7 @@ type DesktopItem = {
 };
 
 export default function Home() {
+  const [showWelcome, setShowWelcome] = useState(true);
   const items: DesktopItem[] = [
     { label: "Eastern Cottontail Rabbit", path: "/circle-push", icon: bunnyIcon },
     { label: "Mallard", path: "/water-physics", icon: duck2Icon },
@@ -52,23 +54,38 @@ export default function Home() {
           ))}
         </div>
 
-        <div
-          className="win95-window"
-          style={{ position: "absolute", right: "16px", bottom: "16px", width: "280px" }}
-        >
-          <div className="win95-titlebar">
-            <div className="win95-titlebar-text">Welcome</div>
-            <div className="win95-titlebar-controls">
-              <span className="win95-control-button" />
-              <span className="win95-control-button" />
-              <span className="win95-control-button" />
+        {showWelcome && (
+          <div
+            className="win95-window"
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "min(90vw, 340px)",
+              maxHeight: "calc(100dvh - 190px)",
+              overflow: "auto",
+            }}
+          >
+            <div className="win95-titlebar">
+              <div className="win95-titlebar-text">Welcome</div>
+              <div className="win95-titlebar-controls">
+                <button
+                  type="button"
+                  className="win95-control-button"
+                  aria-label="Close welcome"
+                  onClick={() => setShowWelcome(false)}
+                >
+                  x
+                </button>
+              </div>
+            </div>
+            <div className="win95-window-content">
+              <p>Double click an icon to open a simulation.</p>
+              <p>Welcome to my website, it was coded with assistance from OpenCode, and the ChatGPT-5.3 Codex model.</p>
             </div>
           </div>
-          <div className="win95-window-content">
-            <p>Double click an icon to open a simulation.</p>
-            <p>Welcome to my website, it was coded with assistance from OpenCode, and the ChatGPT-5.3 Codex model.</p>
-          </div>
-        </div>
+        )}
 
       </div>
     </div>
