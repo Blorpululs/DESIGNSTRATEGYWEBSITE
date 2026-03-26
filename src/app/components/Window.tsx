@@ -81,6 +81,16 @@ const PAGE_PATH_ALIASES: Record<string, string> = {
   "/willowtree": "/willow-tree",
 };
 
+const TITLE_DEFAULT_KEYS: Record<string, string> = {
+  "eastern cottontail": "/circle-push",
+  "mallard": "/water-physics",
+  "honey locust": "/honey-locust",
+  "weeping willow tree": "/willow-tree",
+  "joint tooth moss": "/joint-tooth-moss",
+  "joint tooth mosses": "/joint-tooth-moss",
+  "wild turkey": "/wild-turkey",
+};
+
 const normalizePagePath = (rawPath: string) => {
   const trimmed = rawPath.trim().toLowerCase();
   const withoutTrailingSlash = trimmed.length > 1 ? trimmed.replace(/\/+$/, "") : trimmed;
@@ -100,6 +110,8 @@ const toCanonicalPagePath = (rawPath: string) => {
   return PAGE_PATH_ALIASES[path] ?? path;
 };
 
+const toTitleKey = (rawTitle: string) => rawTitle.trim().toLowerCase();
+
 export default function Window({
   title = "",
   width,
@@ -115,16 +127,26 @@ export default function Window({
   const pagePath = useMemo(() => toCanonicalPagePath(location.pathname || "/"), [location.pathname]);
   const defaultWindowName = title ? `${title}: Information` : "Information";
   const pageDefaults = useMemo(
-    () =>
-      TEXT_WINDOW_DEFAULTS[pagePath] ?? {
+    () => {
+      const fromPath = TEXT_WINDOW_DEFAULTS[pagePath];
+      if (fromPath) return fromPath;
+
+      const titleKey = toTitleKey(title);
+      const defaultPathFromTitle = TITLE_DEFAULT_KEYS[titleKey];
+      if (defaultPathFromTitle && TEXT_WINDOW_DEFAULTS[defaultPathFromTitle]) {
+        return TEXT_WINDOW_DEFAULTS[defaultPathFromTitle];
+      }
+
+      return {
         text: "",
         images: [],
         windowName: defaultWindowName,
         subheading1: "",
         subheading2: "Add notes and images",
         numberOfSightings: 1,
-      },
-    [defaultWindowName, pagePath],
+      };
+    },
+    [defaultWindowName, pagePath, title],
   );
   const [currentDefaults, setCurrentDefaults] = useState<TextWindowPayload>(pageDefaults);
 
@@ -285,8 +307,8 @@ export default function Window({
               onChange={(e) => setSubheading2(e.target.value)}
             />
 
-            {displaySubheading1 && <p className="whitespace-pre-line text-[17px] leading-tight">{displaySubheading1}</p>}
-            {displaySubheading2 && <p className="italic whitespace-pre-line text-[13px] leading-tight">{displaySubheading2}</p>}
+            {displaySubheading1 && <p className="whitespace-pre-line text-[17px] leading-tight text-black">{displaySubheading1}</p>}
+            {displaySubheading2 && <p className="italic whitespace-pre-line text-[13px] leading-tight text-black">{displaySubheading2}</p>}
 
             <div className="flex items-center gap-2 debug-only">
               <button type="button" className="win95-button" onClick={saveEdits}>Save Edits</button>
@@ -296,7 +318,7 @@ export default function Window({
             </div>
 
             <label className="text-[13px]">Notes</label>
-            <div className="win95-border-sunken bg-white px-2 py-2 min-h-[96px] whitespace-pre-line debug-hide">
+            <div className="win95-border-sunken bg-white text-black px-2 py-2 min-h-[96px] whitespace-pre-line debug-hide">
               {visibleNotes || "No notes added"}
             </div>
             <textarea
