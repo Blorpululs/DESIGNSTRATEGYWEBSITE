@@ -80,9 +80,10 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <div className="win95-window-content">
-              <p>Double click an icon to open a simulation.</p>
-              <p>Welcome to my website, it was coded with assistance from OpenCode, and the ChatGPT-5.3 Codex model.</p>
+            <div className="win95-window-content flex flex-col gap-2">
+              <p className="m-0">Welcome to my website! This site is based on the flora and fauna I saw on my walks throughout Boston in the span of one week.</p>
+              <p className="m-0">Website was coded with assistance from OpenCode, and the ChatGPT-5.3 Codex model.</p>
+              <p className="m-0">Double click an icon or click the navigation buttons at the top of the screen to open a simulation.</p>
             </div>
           </div>
         )}
